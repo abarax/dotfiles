@@ -76,4 +76,9 @@ if [[ "$op" == "y" ]]; then
     link_file "$base_dir/hammerspoon" ~/.hammerspoon
 fi
 
+# Set up neovim
+mkdir -p ~/.config
+ln -s ~/.vim ~/.config/nvim
+ln -s ~/.vimrc ~/.config/nvim/init.vim
+
 echo "Done"
