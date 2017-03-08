@@ -381,3 +381,6 @@ export PATH=$DOTFILES/bin:$PATH
 
 source $DOTFILES/zsh/alias.zsh
 source $DOTFILES/zsh/functions.zsh
+
+# Syntax highlighting in commandline
+source $DOTFILES/zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
