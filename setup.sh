@@ -54,7 +54,9 @@ link_file() {
 }
 
 echo "Setting up zsh..."
+link_file "$base_dir/zsh/oh-my-zsh" ~/.oh-my-zsh
 link_file "$base_dir/zsh/zshrc" ~/.zshrc
+link_file "$base_dir/zsh/zsh-custom-themes" ~/.zsh-custom-themes
 
 echo "Setting up vim..."
 if link_file "$base_dir/vim/vimrc" ~/.vimrc ; then
