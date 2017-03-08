@@ -53,6 +53,9 @@ link_file() {
 	return 1
 }
 
+echo "Setting up git"
+link_file "$base_dir/git/gitconfig" ~/.gitconfig
+
 echo "Setting up zsh..."
 link_file "$base_dir/zsh/oh-my-zsh" ~/.oh-my-zsh
 link_file "$base_dir/zsh/zshrc" ~/.zshrc
@@ -64,6 +67,7 @@ if link_file "$base_dir/vim/vimrc" ~/.vimrc ; then
 fi
 
 echo "Setting up tmux..."
+link_file "$base_dir/tmux/tmux" ~/.tmux
 link_file "$base_dir/tmux/tmux.conf" ~/.tmux.conf
 
 printf "Set up hammerspoons config? [yn]"
