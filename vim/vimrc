@@ -105,9 +105,6 @@ call plug#begin('~/.vim/plugged')
  " Misc Functions
  Plug 'vim-scripts/L9'
 
-" Time stats
- Plug 'wakatime/vim-wakatime'
-
 " distraction free
  Plug 'junegunn/goyo.vim'
 
