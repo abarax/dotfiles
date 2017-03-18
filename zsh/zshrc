@@ -109,14 +109,22 @@ zstyle ':completion:*' list-colors "$LS_COLORS"
 zstyle -e ':completion:*:(ssh|scp|sshfs|ping|telnet|nc|rsync):*' hosts '
     reply=( ${=${${(M)${(f)"$(<~/.ssh/config)"}:#Host*}#Host }:#*\**} )'
 
+# Open Chrome from commandline
+alias chrome="open /Applications/Google\ Chrome.app/ --args --disable-web-security"
+
+#Android stuff
+PATH=${PATH}:~/dev/tools/adt-bundle-mac-x86_64-20140702/sdk/platform-tools:~/dev/tools/adt-bundle-mac-x86_64-20140702/sdk/tools
+
+PATH=$PATH:/usr/local/sbin
+
 # }}
 
 # Key Bindings {{
 #-------------------------------------------------------------------------------
 # Set emacs like key bindings
 #-------------------------------------------------------------------------------
-bindkey '^b' backward-word
-bindkey '^f' forward-word
+bindkey '\Cb' backward-word
+bindkey '\Cf' forward-word
 bindkey '^R' history-incremental-search-backward
 bindkey '^R' history-incremental-pattern-search-backward
 bindkey '^?' backward-delete-char
@@ -144,9 +152,6 @@ alias ....='cd ../../..'
 alias .....='cd ../../../..'
 alias ping='ping -c 5'
 alias ad='add_current_directory_to_path'
-if [[ -d /Applications/MacVim.app/Contents/MacOS/ ]]; then
-    alias vim=/Applications/MacVim.app/Contents/MacOS/vim
-fi
 alias startdb='pg_ctl -D /usr/local/var/postgres -l /usr/local/var/postgres/server.log start'
 alias stopdb='pg_ctl -D /usr/local/var/postgres stop -s -m fast'
 alias gs='git status'
@@ -193,79 +198,14 @@ function mem_usage() {
     echo ""
     echo "Mem Size       PID     Process"
     echo "============================================================================="
-    ps aux | awk '{ output = sprintf("%5d Mb --> %5s --> %s%s%s%s", $6/1024, $2, $11, $12, $13, $14); print output }' | sort -gr | head --line $number
-    }
+    ps aux | awk '{ output = sprintf("%5d Mb --> %5s --> %s%s%s%s", $6/1024, $2, $11, $12, $13, $14); print output }' | sort -gr | head -n $number
+}
 
 #------------------------------------------------------------------------------
 # Because, well I need to spell check a lot :\
 #------------------------------------------------------------------------------
 spell (){
     echo $1 | aspell -a
-}
-
-#--------------------------------------------------------------------
-# If we cd into a directory that is named the same as a virtualenv
-# auto activate that virtualenv
-# -------------------------------------------------------------------
-[[ -a /usr/local/share/python/virtualenvwrapper.sh ]] && source /usr/local/share/python/virtualenvwrapper.sh
-[[ -a /usr/local/bin/virtualenvwrapper.sh ]] && source /usr/local/bin/virtualenvwrapper.sh
-
-workon_virtualenv() {
-  if [[ -d .git ]]; then
-     VENV_CUR_DIR="${PWD##*/}"
-     if [[ -a ~/.virtualenvs/$VENV_CUR_DIR ]]; then
-       deactivate > /dev/null 2>&1
-       source ~/.virtualenvs/$VENV_CUR_DIR/bin/activate
-     fi
-  fi
-}
-
-#--------------------------------------------------------------------
-# If we cd into a directory that contains a directory named node_modules
-# we automatically recursively add it to the $PATH
-# -------------------------------------------------------------------
-workon_node_env() {
-  if [[ -d "node_modules" ]]; then
-
-    export NPM_ORIGINAL_PATH=$PATH
-    eval NODE_NAME=$(basename $(pwd))
-
-    for f in `ls $(pwd)/node_modules/`
-    do
-      export PATH="${PATH}:$(pwd)/node_modules/${f}bin"
-    done
-
-    deactivatenode(){
-      export PATH=$NPM_ORIGINAL_PATH
-      unset -f deactivatenode
-      unset NODE_NAME
-    }
-  fi
-}
-
-#--------------------------------------------------------------------
-# Run the virtual environments functions for the prompt on each cd
-# -------------------------------------------------------------------
-cd() {
-  builtin cd "$@"
-  unset NODE_NAME
-  workon_virtualenv
-  workon_node_env
-}
-
-#--------------------------------------------------------------------
-# Search for running processes
-# -------------------------------------------------------------------
-any() {
-    emulate -L zsh
-    unsetopt KSH_ARRAYS
-    if [[ -z "$1" ]] ; then
-        echo "any - grep for process(es) by keyword" >&2
-        echo "Usage: any " >&2 ; return 1
-    else
-        echo "USER       PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND"
-        ps xauwww | grep -i --color=auto "[${1[1]}]${1[2,-1]}"
-    fi
 }
 
 # -------------------------------------------------------------------
@@ -297,76 +237,58 @@ add_current_directory_to_path() {
 
 # }}
 
-# Precmd functions {{
-#------------------------------------------------------------------------------
-# Run precmd functions so we get our pimped out prompt
-#------------------------------------------------------------------------------
-precmd_functions=( precmd_prompt )
-
-# }}
-
-# Add rmv scripts {{
-#-------------------------------------------------------------------------------
-
-# }}
-
 # Add pyenv scripts {{
 # ------------------------------------------------------------------------------
-export PYENV_ROOT="$HOME/.pyenv"
-export PATH="$PYENV_ROOT/bin:$PATH"
-export PATH="~/.pyenv/shims:$PATH"
-
-eval "$(pyenv init -)"
+if hash pyenv 2>/dev/null; then
+    # Pyenv Stuff
+    eval "$(pyenv init -)"
+    eval "$(pyenv virtualenv-init -)"
+else
+    echo "WARNING: You do not have pyenv installed, please install using 'brew install pyenv'"
+fi
     
 # }}
 
-# EOF
-
-alias chrome="open /Applications/Google\ Chrome.app/ --args --disable-web-security"
-
-#Android stuff
-PATH=${PATH}:~/dev/tools/adt-bundle-mac-x86_64-20140702/sdk/platform-tools:~/dev/tools/adt-bundle-mac-x86_64-20140702/sdk/tools
-
-PATH=$PATH:$HOME/.rvm/bin # Add RVM to PATH for scripting
-PATH=$PATH:/usr/local/sbin
-
-#Pick a Ruby
-source ~/.rvm/scripts/rvm
-rvm use 2.3.3
-
-
-#===================================================================================
-#               oh-my-zsh config 
+# oh-my-zsh config {{
 #===================================================================================
 
+#===================================================================================
 # Path to your oh-my-zsh installation.
+#===================================================================================
 export ZSH=/Users/abarax/.oh-my-zsh
 
 ZSH_CUSTOM=~/.zsh-custom-themes
 
+#===================================================================================
 # Set name of the theme to load.
-# Look in ~/.oh-my-zsh/themes/
-# Optionally, if you set this to "random", it'll load a random theme each
-# time that oh-my-zsh is loaded.
+#===================================================================================
 ZSH_THEME="bullet-train"
 
+#===================================================================================
+# Set up oh-my-zsh
+#===================================================================================
 source $ZSH/oh-my-zsh.sh
 
-
-# bullet-train config
+#===================================================================================
+# bullet-train theme config
+#===================================================================================
 BULLETTRAIN_VIRTUALENV_FG=black
 BULLETTRAIN_RUBY_SHOW=false
 
+#===================================================================================
 #TMUX
+#===================================================================================
 DISABLE_AUTO_TITLE=true
 
-# Pyenv Stuff
-eval "$(pyenv init -)"
-eval "$(pyenv virtualenv-init -)"
+#===================================================================================
+# Syntax highlighting in commandline
+#===================================================================================
+source $DOTFILES/zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
-########################
-###     FZF Setup
-########################
+# }}
+
+# FZF Setup {{
+#===================================================================================
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
@@ -385,14 +307,26 @@ fi
 
 export FZF_CTRL_R_OPTS="--preview 'echo {}' --preview-window down:3:hidden:wrap --bind '?:toggle-preview' --bind 'ctrl-y:execute-silent(echo -n {2..} | pbcopy)+abort' --header 'Press CTRL-Y to copy command into clipboard' --border"
 
+# BLSD command does bredth first list of directories, command installed
+# from here: https://github.com/junegunn/blsd
+command -v blsd > /dev/null && export FZF_ALT_C_COMMAND='blsd'
+# Preview using the 'tree' command which displays a tree like structure 
+# for directory, insalled by 'brew install tree'
+command -v tree > /dev/null && export FZF_ALT_C_OPTS="--preview 'tree -C {} | head -200'"
+
+# display a smaller fzf window instead of fullscreen
 fzf-down() {
   fzf --height 50% "$@" --border
 }
 
-########################
-###     Useful FZF Functions
-########################
+# }}
+
+# Useful FZF Functions {{
+#===================================================================================
+
+#-------------------------------------------------------------------------------
 # c - browse chrome history
+#-------------------------------------------------------------------------------
 c() {
   local cols sep
   export cols=$(( COLUMNS / 3 ))
@@ -414,16 +348,20 @@ c() {
   sed 's#.*\(https*://\)#\1#' | xargs open
 }
 
+#-------------------------------------------------------------------------------
 # fe [FUZZY PATTERN] - Open the selected file with the default editor
 #   - Bypass fuzzy finder if there's only one match (--select-1)
 #   - Exit if there's no match (--exit-0)
+#-------------------------------------------------------------------------------
 fe() {
   local file
   file=$(fzf-tmux --query="$1" --select-1 --exit-0)
   [ -n "$file" ] && ${EDITOR:-vim} "$file"
 }
 
+#-------------------------------------------------------------------------------
 # v - open files in ~/.viminfo
+#-------------------------------------------------------------------------------
 v() {
   local files
   files=$(grep '^>' ~/.viminfo | cut -c3- |
@@ -432,7 +370,9 @@ v() {
           done | fzf -d -m -q "$*" -1) && vim ${files//\~/$HOME}
 }
 
+#-------------------------------------------------------------------------------
 # fco - checkout git branch/tag
+#-------------------------------------------------------------------------------
 fco() {
   local tags branches target
   tags=$(git tag | awk '{print "\x1b[31;1mtag\x1b[m\t" $1}') || return
@@ -446,7 +386,9 @@ fco() {
   git checkout $(echo "$target" | awk '{print $2}')
 }
 
+#-------------------------------------------------------------------------------
 # fshow - git commit browser
+#-------------------------------------------------------------------------------
 fshow() {
   git log --graph --color=always \
       --format="%C(auto)%h%d %s %C(black)%C(bold)%cr" "$@" |
@@ -458,17 +400,23 @@ fshow() {
               xargs -I % sh -c 'vim fugitive://\$(git rev-parse --show-toplevel)/.git//% < /dev/tty'"
 }
 
+#-------------------------------------------------------------------------------
 # fh - repeat history
+#-------------------------------------------------------------------------------
 fh() {
   print -z $( ([ -n "$ZSH_NAME" ] && fc -l 1 || history) | fzf +s --tac | sed 's/ *[0-9]* *//')
 }
 
+#-------------------------------------------------------------------------------
 # Copy File contents to clipboard
+#-------------------------------------------------------------------------------
 pbc() {
   perl -pe 'chomp if eof' | pbcopy
 }
 
-# Z integration
+#-------------------------------------------------------------------------------
+# Z integration - fzf cd to recent directories
+#-------------------------------------------------------------------------------
 source $DOTFILES/z.sh
 unalias z 2> /dev/null
 z() {
@@ -476,14 +424,18 @@ z() {
   cd "$(_z -l 2>&1 | fzf --height 40% --reverse +s --tac --query "$*" | sed 's/^[0-9,.]* *//')"
 }
 
+# }}
 
-# GIT heart FZF
-# -------------
+# GIT heart FZF {{
+#===================================================================================
 
 is_in_git_repo() {
   git rev-parse HEAD > /dev/null 2>&1
 }
 
+#-------------------------------------------------------------------------------
+#  git status
+#-------------------------------------------------------------------------------
 gf() {
   is_in_git_repo || return
   git -c color.status=always status --short |
@@ -492,6 +444,9 @@ gf() {
   cut -c4- | sed 's/.* -> //'
 }
 
+#-------------------------------------------------------------------------------
+#  git branches
+#-------------------------------------------------------------------------------
 gb() {
   is_in_git_repo || return
   git branch -a --color=always | grep -v '/HEAD\s' | sort |
@@ -501,6 +456,9 @@ gb() {
   sed 's#^remotes/##'
 }
 
+#-------------------------------------------------------------------------------
+#  git tags
+#-------------------------------------------------------------------------------
 gt() {
   is_in_git_repo || return
   git tag --sort -version:refname |
@@ -508,6 +466,9 @@ gt() {
     --preview 'git show --color=always {} | head -200'
 }
 
+#-------------------------------------------------------------------------------
+#  git log / history viewer
+#-------------------------------------------------------------------------------
 gh() {
   is_in_git_repo || return
   git log --date=short --format="%C(green)%C(bold)%cd %C(auto)%h%d %s (%an)" --graph --color=always |
@@ -517,6 +478,9 @@ gh() {
   grep -o "[a-f0-9]\{7,\}"
 }
 
+#-------------------------------------------------------------------------------
+#  git remotes
+#-------------------------------------------------------------------------------
 gr() {
   is_in_git_repo || return
   git remote -v | awk '{print $1 "\t" $2}' | uniq |
@@ -525,10 +489,25 @@ gr() {
   cut -d$'\t' -f1
 }
 
+# }}
+
+# PATH stuff {{
 export PATH=$DOTFILES/bin:$PATH
 
 source $DOTFILES/zsh/alias.zsh
 source $DOTFILES/zsh/functions.zsh
 
-# Syntax highlighting in commandline
-source $DOTFILES/zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+# }}
+
+# RVM Setup {{
+#=============================================================================
+
+#-------------------------------------------------------------------------------
+# Add RVM to PATH for scripting. Make sure this is the last PATH variable change.
+#-------------------------------------------------------------------------------
+export PATH="$PATH:$HOME/.rvm/bin"
+
+[[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm" # Load RVM into a shell session *as a function*
+# }}
+
+# EOF
