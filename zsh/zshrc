@@ -255,6 +255,7 @@ fi
 #===================================================================================
 # Path to your oh-my-zsh installation.
 #===================================================================================
+plugins = (fastgit vi-mode)
 export ZSH=/Users/abarax/.oh-my-zsh
 
 ZSH_CUSTOM=~/.zsh-custom-themes
