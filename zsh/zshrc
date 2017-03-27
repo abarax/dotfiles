@@ -255,7 +255,12 @@ fi
 #===================================================================================
 # Path to your oh-my-zsh installation.
 #===================================================================================
-plugins = (fastgit vi-mode)
+plugins=(git colored-man zsh-syntax-highlighting pip python fasd extract vi-mode)
+
+if [[ `uname` == 'Darwin' ]]; then
+    plugins+=(osx brew brew-cask)
+fi
+
 export ZSH=/Users/abarax/.oh-my-zsh
 
 ZSH_CUSTOM=~/.zsh-custom-themes
