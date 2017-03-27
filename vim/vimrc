@@ -32,7 +32,6 @@ call plug#begin('~/.vim/plugged')
 "   Python
  Plug 'zchee/deoplete-jedi'
  Plug 'davidhalter/jedi'
- Plug 'python-mode/python-mode'
 
  Plug 'othree/yajs.vim'
  Plug 'jelera/vim-javascript-syntax'
