@@ -61,6 +61,7 @@ call plug#begin('~/.vim/plugged')
  " Navigation
  Plug 'justinmk/vim-sneak'
  Plug 'Lokaltog/vim-easymotion'
+ Plug 'kshenoy/vim-signature'
 
  " Color Schemes
  Plug 'JarrodCTaylor/vim-256-color-schemes'
@@ -96,7 +97,7 @@ call plug#begin('~/.vim/plugged')
  Plug 'tpope/vim-commentary'
 
  " Syntax Checking
- Plug 'scrooloose/syntastic'
+ Plug 'w0rp/ale'
 
  " Python Code Folding
  Plug 'tmhedberg/SimpylFold'
@@ -185,12 +186,17 @@ set wildignore=*.swp,*.bak,*.pyc,*.class,node_modules/**,../src/**  " wildmenu: 
 set wildmenu                           " Command-line completion in an enhanced mode
 set shell=bash                         " Required to let zsh know how to run things on command line
 set ttimeoutlen=50                     " Fix delay when escaping from insert with Esc
+set colorcolumn=80
 
 "-----------------------------------------------------------------------------------
 " Turn off the toolbar that is under the menu in gvim
 "-----------------------------------------------------------------------------------
 set guioptions-=T
 
+"-----------------------------------------------------------------------------------
+" Tags
+"-----------------------------------------------------------------------------------
+set tags=tags;/
 "-----------------------------------------------------------------------------------
 " Set the minimum number of lines above and below the cursor
 "-----------------------------------------------------------------------------------
@@ -223,6 +229,19 @@ if has("autocmd")
         \ endif
 endif
 
+"-----------------------------------------------------------------------------------
+" set vim to save tmp files elsewhere
+"-----------------------------------------------------------------------------------
+set backupdir=~/.vim/backups/
+set directory=~/.vim/temps/
+
+"-----------------------------------------------------------------------------------
+" --- target on cursor
+"-----------------------------------------------------------------------------------
+au WinLeave * set nocursorline nocursorcolumn
+au WinEnter * set cursorline cursorcolumn
+set cursorline cursorcolumn
+
 " }
 
 " Status line {
@@ -231,20 +250,30 @@ let g:airline_theme='luna'                   " Use the custom theme I wrote
 let g:airline_left_sep=''                           " No separator as they seem to look funky
 let g:airline_right_sep=''                          " No separator as they seem to look funky
 let g:airline#extensions#branch#enabled = 0         " Do not show the git branch in the status line
-let g:airline#extensions#syntastic#enabled = 1      " Do show syntastic warnings in the status line
 let g:airline#extensions#tabline#show_buffers = 0   " Do not list buffers in the status line
 " let g:airline_section_x = ''                        " Do not list the filetype or virtualenv in the status line
 " let g:airline_section_y = '[R%04l,C%04v] [LEN=%L]'  " Replace file encoding and file format info with file position
 " let g:airline_section_z = ''                        " Do not show the default file position info
-"let g:airline_section_warning = ''                  " Do not show the syntastic information in the status line
 let g:airline#extensions#virtualenv#enabled = 0
+let g:airline#extensions#ale#error_symbol = '⨉ '
+let g:airline#extensions#ale#warning_symbol = '⚠ '
 " }
 
-" set vim to save tmp files elsewhere
-set backupdir=~/.vim/backups/
-set directory=~/.vim/temps/
-
 " Plugin Configurations {
+
+" ALE
+let g:ale_statusline_format = ['⨉ %d', '⚠ %d', '⬥ ok']
+
+"-----------------------------------------------------------------------------------
+" UltiSnips configurations
+"-----------------------------------------------------------------------------------
+" Trigger configuration. Do not use <tab> if you use https://github.com/Valloric/YouCompleteMe.
+let g:UltiSnipsExpandTrigger="<tab>"
+let g:UltiSnipsJumpForwardTrigger="<c-b>"
+let g:UltiSnipsJumpBackwardTrigger="<c-z>"
+
+" If you want :UltiSnipsEdit to split your window.
+let g:UltiSnipsEditSplit="vertical"
 
 "-----------------------------------------------------------------------------------
 " Ctrlp configurations
@@ -317,6 +346,45 @@ let g:startify_show_files_number = 10
 " A list of files to bookmark. Always shown
 let g:startify_bookmarks = [ '~/.vimrc' ]
 
+let g:ctrlp_reuse_window = 'startify'
+
+autocmd VimEnter *
+            \   if !argc()
+            \ |   Startify
+            \ |   NERDTree
+            \ |   wincmd w
+            \ | endif
+
+"-----------------------------------------------------------------------------------
+" python syntax
+"-----------------------------------------------------------------------------------
+let g:python_highlight_space_errors = 0
+let g:python_highlight_indent_errors = 0
+let g:python_highlight_all = 1
+
+"-----------------------------------------------------------------------------------
+" vimsneak
+"-----------------------------------------------------------------------------------
+let g:sneak#use_ic_scs = 1
+let g:sneak#streak = 1
+
+"-----------------------------------------------------------------------------------
+" --- Obvious search highlight
+"-----------------------------------------------------------------------------------
+highlight Search ctermbg=black ctermfg=yellow term=underline
+
+"-----------------------------------------------------------------------------------
+" gruvbox
+"-----------------------------------------------------------------------------------
+let g:gruvbox_contrast_dark = 'hard'
+let g:gruvbox_invert_selection = 1
+let g:gruvbox_invert_signs = 0
+
+"-----------------------------------------------------------------------------------
+" javascript-libararies-syntax
+"-----------------------------------------------------------------------------------
+let g:used_javascript_libs = 'handlebars,jquery'
+
 "-----------------------------------------------------------------------------------
 " SuperTab
 "-----------------------------------------------------------------------------------
@@ -336,16 +404,6 @@ autocmd FileType *
     \     call SuperTabChain(&omnifunc, '<c-p>') |
     \ endif
 
-
-"-----------------------------------------------------------------------------------
-" Syntastic configurations use :help syntastic.txt
-"-----------------------------------------------------------------------------------
-let g:syntastic_check_on_open=1                   " check for errors when file is loaded
-let g:syntastic_loc_list_height=5                 " the height of the error list defaults to 10
-let g:syntastic_python_checkers = ['flake8']      " sets flake8 as the default for checking python files
-let g:syntastic_javascript_checkers = ['jshint']  " sets jshint as our javascript linter
-" Ignore line width for syntax checking in python
-let g:syntastic_python_flake8_post_args='--ignore=E501'
 
 "-----------------------------------------------------------------------------------
 " Rainbow Parentheses
@@ -370,6 +428,84 @@ let g:rbpt_colorpairs = [
     \ ]
 let g:rbpt_max = 16
 let g:rbpt_loadcmd_toggle = 0
+
+"-----------------------------------------------------------------------------------
+" Custom Neovim stuff
+"-----------------------------------------------------------------------------------
+if has('nvim')
+    "Ctrl+h is somehow broken in neovim.
+    nmap <BS> <C-W>h
+
+    " Use deoplete.
+    let g:deoplete#enable_at_startup = 1
+
+    let g:tern#command = ['tern']
+    let g:tern#arguments = ['--persistent']
+
+    let g:python_host_prog = '/Users/abarax/.pyenv/versions/neovim2/bin/python'
+    let g:python3_host_prog = '/Users/abarax/.pyenv/versions/neovim3/bin/python'
+endif
+
+"-----------------------------------------------------------------------------------
+" FZF
+"-----------------------------------------------------------------------------------
+if executable("rg")
+    " --column: Show column number
+    " --line-number: Show line number
+    " --no-heading: Do not show file headings in results
+    " --fixed-strings: Search term as a literal string
+    " --ignore-case: Case insensitive search
+    " --no-ignore: Do not respect .gitignore, etc...
+    " --hidden: Search hidden files and folders
+    " --follow: Follow symlinks
+    " --glob: Additional conditions for search (in this case ignore everything in the .git/ folder and cordova/ folder (cordova doesn't typically have use cases for searching within))
+    " --color: Search color options
+    command! -bang -nargs=* Find call 
+                \ fzf#vim#grep(
+                \ 'rg --column --line-number --no-heading --fixed-strings --ignore-case --hidden --follow --glob "!.git/*" --glob "!cordova/*" --color "always" '.shellescape(<q-args>), 1,
+                \   <bang>0 ? fzf#vim#with_preview('up:60%')
+                \           : fzf#vim#with_preview('right:50%:hidden', '?'),
+                \   <bang>0)
+
+    command! -bang -nargs=* FindAll call fzf#vim#grep('rg --column --line-number --no-heading --fixed-strings --ignore-case --no-ignore --hidden --follow --glob "!.git/*" --color "always" '.shellescape(<q-args>), 1, <bang>0)
+
+    set grepprg=rg\ --vimgrep
+
+    let $FZF_DEFAULT_COMMAND='rg --files --hidden --follow --glob "!.git/*"'
+elseif executable("ag")
+    let $FZF_DEFAULT_COMMAND = 'ag -g ""'
+endif
+
+command! -bang -nargs=* Ag
+  \ call fzf#vim#ag(<q-args>,
+  \                 <bang>0 ? fzf#vim#with_preview('up:60%')
+  \                         : fzf#vim#with_preview('right:50%:hidden', '?'),
+  \                 <bang>0)
+
+" Mapping selecting mappings
+nmap <leader><tab> <plug>(fzf-maps-n)
+xmap <leader><tab> <plug>(fzf-maps-x)
+omap <leader><tab> <plug>(fzf-maps-o)
+
+" Insert mode completion
+imap <c-x><c-k> <plug>(fzf-complete-word)
+imap <c-x><c-f> <plug>(fzf-complete-path)
+imap <c-x><c-j> <plug>(fzf-complete-file-ag)
+imap <c-x><c-l> <plug>(fzf-complete-line)
+
+" Advanced customization using autoload functions
+inoremap <expr> <c-x><c-k> fzf#vim#complete#word({'left': '15%'})
+
+function! s:fzf_statusline()
+  " Override statusline as you like
+  highlight fzf1 ctermfg=161 ctermbg=251
+  highlight fzf2 ctermfg=23 ctermbg=251
+  highlight fzf3 ctermfg=237 ctermbg=251
+  setlocal statusline=%#fzf1#\ >\ %#fzf2#fz%#fzf3#f
+endfunction
+
+" autocmd! User FzfStatusLine call <SID>fzf_statusline()
+
 
 " }
 
@@ -515,7 +651,7 @@ map <Tab> <Leader>lf
 map <S-Tab> <Leader>lF
 
 " Toggle PasteMode
-nmap <leader>p :setlocal paste! paste?<cr>
+nmap <Leader>p :setlocal paste! paste?<cr>
 
 map <Leader>db Oimport pdb;pdb.set_trace()<ESC>
 
@@ -531,102 +667,58 @@ noremap <Leader>gs :Gstatus<CR>
 " GitDiff
 noremap <Leader>gd :Gdiff<CR>
 
-" " Copy to clipboard
-vnoremap  <leader>y  "+y
-nnoremap  <leader>Y  "+yg_
-nnoremap  <leader>y  "+y
-nnoremap  <leader>yy  "+yy
+"-----------------------------------------------------------------------------------
+" Copy to clipboard
+"-----------------------------------------------------------------------------------
+vnoremap  <Leader>y  "+y
+nnoremap  <Leader>Y  "+yg_
+nnoremap  <Leader>y  "+y
+nnoremap  <Leader>yy  "+yy
 
-" --- target on cursor
-au WinLeave * set nocursorline nocursorcolumn
-au WinEnter * set cursorline cursorcolumn
-set cursorline cursorcolumn
+"-----------------------------------------------------------------------------------
+" Marks
+"-----------------------------------------------------------------------------------
+nmap <Leader>m `]
+nmap <Leader>M `[
+nmap mm m,
+nnoremap  <Leader>mm  :Marks<CR>
 
-" python syntax
-let g:python_highlight_space_errors = 0
-let g:python_highlight_indent_errors = 0
-let g:python_highlight_all = 1
+"-----------------------------------------------------------------------------------
+" Folds
+"-----------------------------------------------------------------------------------
+" Open Single Fold
+nnoremap  <Leader>fo zo 
+" Close Single Fold
+nnoremap  <Leader>fc zc 
+" Open All Folds
+nnoremap  <Leader>fO zR 
+" Close All Folds
+nnoremap  <Leader>fC zM 
 
-" vimsneak
-let g:sneak#use_ic_scs = 1
-let g:sneak#streak = 1
-
-" startify
-let g:ctrlp_reuse_window = 'startify'
-autocmd VimEnter *
-            \   if !argc()
-            \ |   Startify
-            \ |   NERDTree
-            \ |   wincmd w
-            \ | endif
-
-" --- Obvious search highlight
-highlight Search ctermbg=black ctermfg=yellow term=underline
-
-" gruvbox
-let g:gruvbox_contrast_dark = 'hard'
-let g:gruvbox_invert_selection = 1
-let g:gruvbox_invert_signs = 0
-
-" javascript-libararies-syntax
-let g:used_javascript_libs = 'handlebars,jquery'
+" Isort python import sorting. This is a pip package
+autocmd FileType python nnoremap <LocalLeader>i :!isort %<CR><CR>
 
 "Custom Commands
 " Spawn small terminal window
 command! -nargs=0 Cmd exe 'Tmux split-window -l 12 -c '.shellescape(getcwd())
 
-
-"Custom Neovim stuff
-
-if has('nvim')
-    "Ctrl+h is somehow broken in neovim.
-    nmap <BS> <C-W>h
-
-    " Use deoplete.
-    let g:deoplete#enable_at_startup = 1
-
-    let g:tern#command = ['tern']
-    let g:tern#arguments = ['--persistent']
-
-    let g:python_host_prog = '/Users/abarax/.pyenv/versions/neovim2/bin/python'
-    let g:python3_host_prog = '/Users/abarax/.pyenv/versions/neovim3/bin/python'
-endif
-
 " }
 
 
-" Trigger configuration. Do not use <tab> if you use https://github.com/Valloric/YouCompleteMe.
-let g:UltiSnipsExpandTrigger="<tab>"
-let g:UltiSnipsJumpForwardTrigger="<c-b>"
-let g:UltiSnipsJumpBackwardTrigger="<c-z>"
+function! YAPF() range
+  " Determine range to format.
+  let l:line_ranges = a:firstline . '-' . a:lastline
+  let l:cmd = 'yapf --lines=' . l:line_ranges
 
-" If you want :UltiSnipsEdit to split your window.
-let g:UltiSnipsEditSplit="vertical"
+  " Call YAPF with the current buffer
+  let l:formatted_text = system(l:cmd, join(getline(1, '$'), "\n") . "\n")
 
-" Isort python import sorting. This is a pip package
-autocmd FileType python nnoremap <LocalLeader>i :!isort %<CR><CR>
-let g:pymode_rope=0
+  " Update the buffer.
+  execute '1,' . string(line('$')) . 'delete'
+  call setline(1, split(l:formatted_text, "\n"))
 
-if executable("rg")
-    " --column: Show column number
-    " --line-number: Show line number
-    " --no-heading: Do not show file headings in results
-    " --fixed-strings: Search term as a literal string
-    " --ignore-case: Case insensitive search
-    " --no-ignore: Do not respect .gitignore, etc...
-    " --hidden: Search hidden files and folders
-    " --follow: Follow symlinks
-    " --glob: Additional conditions for search (in this case ignore everything in the .git/ folder and cordova/ folder (cordova doesn't typically have use cases for searching within))
-    " --color: Search color options
-    command! -bang -nargs=* Find call fzf#vim#grep('rg --column --line-number --no-heading --fixed-strings --ignore-case --hidden --follow --glob "!.git/*" --glob "!cordova/*" --color "always" '.shellescape(<q-args>), 1, <bang>0)
+  " Reset cursor to first line of the formatted range.
+  call cursor(a:firstline, 1)
+endfunction
 
-    command! -bang -nargs=* FindAll call fzf#vim#grep('rg --column --line-number --no-heading --fixed-strings --ignore-case --no-ignore --hidden --follow --glob "!.git/*" --color "always" '.shellescape(<q-args>), 1, <bang>0)
-
-    set grepprg=rg\ --vimgrep
-
-    let $FZF_DEFAULT_COMMAND='rg --files --hidden --follow --glob "!.git/*"'
-elseif executable("ag")
-    let $FZF_DEFAULT_COMMAND = 'ag -g ""'
-endif
-
-set tags=tags;/
+command! -range=% YAPF <line1>,<line2>call YAPF()
