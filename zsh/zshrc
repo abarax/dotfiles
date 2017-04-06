@@ -162,6 +162,8 @@ alias tmuxp='tmux attach -t pair-session || tmux new-session -t host-session -s 
 alias rogue='tmux switch-client -t "pair-session"; tmux display-message "Entering Rogue Mode"'
 alias buddy='tmux switch-client -t "host-session"; tmux display-message "Entering Buddy Mode"'
 alias mux='tmuxinator'
+alias safesite-web='mux safesite-web'
+alias safesite-mob='mux safesite-mobile'
 
 # }}
 
@@ -240,13 +242,37 @@ add_current_directory_to_path() {
 # Add pyenv scripts {{
 # ------------------------------------------------------------------------------
 if hash pyenv 2>/dev/null; then
-    # Pyenv Stuff
+    export PYENV_ROOT="$HOME/.pyenv"
+    export PATH="$PYENV_ROOT/bin:$PATH"
+    export PATH="~/.pyenv/shims:$PATH"
+
     eval "$(pyenv init -)"
     eval "$(pyenv virtualenv-init -)"
 else
     echo "WARNING: You do not have pyenv installed, please install using 'brew install pyenv'"
 fi
     
+# }}
+
+# Precmd functions {{
+#------------------------------------------------------------------------------
+# Run precmd functions so we get our pimped out prompt
+#------------------------------------------------------------------------------
+precmd_functions=( precmd_prompt )
+
+# }}
+
+# Add rvm scripts {{
+#-------------------------------------------------------------------------------
+
+if [ -d "$HOME/.rvm/bin" ]; then
+    source $HOME/.rvm/scripts/rvm
+    #Pick a Ruby
+    rvm use 2.3.3 > /dev/null
+else
+    echo "WARNING: You do not have rvm installed, please install at https://rvm.io/"
+fi
+
 # }}
 
 # oh-my-zsh config {{
@@ -280,6 +306,8 @@ source $ZSH/oh-my-zsh.sh
 #===================================================================================
 BULLETTRAIN_VIRTUALENV_FG=black
 BULLETTRAIN_RUBY_SHOW=false
+
+export KEYTIMEOUT=1
 
 #===================================================================================
 #TMUX
@@ -463,7 +491,7 @@ gb() {
 }
 
 #-------------------------------------------------------------------------------
-#  git tags
+# Git tags, search through tags and return name
 #-------------------------------------------------------------------------------
 gt() {
   is_in_git_repo || return
@@ -473,7 +501,7 @@ gt() {
 }
 
 #-------------------------------------------------------------------------------
-#  git log / history viewer
+# git history log, search through logs and return commit hash
 #-------------------------------------------------------------------------------
 gh() {
   is_in_git_repo || return
@@ -485,7 +513,7 @@ gh() {
 }
 
 #-------------------------------------------------------------------------------
-#  git remotes
+# Git remote -v, search through remotes and return remote name
 #-------------------------------------------------------------------------------
 gr() {
   is_in_git_repo || return
@@ -495,25 +523,77 @@ gr() {
   cut -d$'\t' -f1
 }
 
+bind-git-helper() {
+  local char
+  for c in $@; do
+    eval "fzf-g$c-widget() { local result=\$(g$c); zle reset-prompt; LBUFFER+=\$result }"
+    eval "zle -N fzf-g$c-widget"
+    eval "bindkey '^g^$c' fzf-g$c-widget"
+  done
+}
+
+bind-git-helper f b t r h
+unset -f bind-git-helper
+
+# }}
+
+# Bookmark Functionality {{
+#===============================================================================
+
+if [[ -z $BOOKMARKS_FILE ]] ; then
+    export BOOKMARKS_FILE="$HOME/.bookmarks"
+fi
+
+if [[ ! -f $BOOKMARKS_FILE ]]; then
+    touch $BOOKMARKS_FILE
+fi
+
+function mark() {
+    echo $@ : $(pwd) >> $BOOKMARKS_FILE
+}
+
+fzfcmd() {
+   [ ${FZF_TMUX:-1} -eq 1 ] && echo "fzf-tmux -d${FZF_TMUX_HEIGHT:-40%}" || echo "fzf"
+}
+
+function jump() {
+    local jumpline
+    jumpline=$(cat ${BOOKMARKS_FILE} | $(fzfcmd) --bind=ctrl-y:accept --tac)
+    if [[ -n ${jumpline} ]]; then
+        local jumpdir
+        jumpdir=$(echo "${jumpline}" | sed -n "s/.* : \(.*\)$/\1/p" | sed "s#~#$HOME#")
+        perl -p -i -e "s#${jumpline}\n##g" $BOOKMARKS_FILE
+        cd "${jumpdir}" && echo ${jumpline} >> $BOOKMARKS_FILE
+    fi
+    zle && zle reset-prompt
+}
+
+function dmark()  {
+    local marks_to_delete line
+    marks_to_delete=$(cat $BOOKMARKS_FILE | $(fzfcmd) -m --bind=ctrl-y:accept,ctrl-t:toggle-up --tac)
+
+    if [[ -n ${marks_to_delete} ]]; then
+        while read -r line; do
+            perl -p -i -e "s#${line}\n##g" $BOOKMARKS_FILE
+        done <<< "$marks_to_delete"
+
+        echo "** The following marks were deleted **"
+        echo "${marks_to_delete}"
+    fi
+}
+
+zle -N jump
+bindkey '^j' jump
+
 # }}
 
 # PATH stuff {{
+#===============================================================================
 export PATH=$DOTFILES/bin:$PATH
 
 source $DOTFILES/zsh/alias.zsh
 source $DOTFILES/zsh/functions.zsh
 
-# }}
-
-# RVM Setup {{
-#=============================================================================
-
-#-------------------------------------------------------------------------------
-# Add RVM to PATH for scripting. Make sure this is the last PATH variable change.
-#-------------------------------------------------------------------------------
-export PATH="$PATH:$HOME/.rvm/bin"
-
-[[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm" # Load RVM into a shell session *as a function*
 # }}
 
 # EOF
