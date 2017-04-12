@@ -1,1 +1,35 @@
-/Users/abarax/imt_dotfiles/Mac/gitconfig
+[color]
+    ui = true
+    branch = true
+    diff = true
+    interactive = true
+    status = true
+[color "status"]
+    added = green
+    changed = red
+    deleted = red
+    untracked = yellow
+[user]
+	name = Leigh Appel
+	email = leigh@safesiteapp.com
+[difftool "sourcetree"]
+	cmd = opendiff \"$LOCAL\" \"$REMOTE\"
+	path = 
+[mergetool "sourcetree"]
+	cmd = /Applications/SourceTree.app/Contents/Resources/opendiff-w.sh \"$LOCAL\" \"$REMOTE\" -ancestor \"$BASE\" -merge \"$MERGED\"
+	trustExitCode = true
+[core]
+	excludesfile = /Users/abarax/.gitignore_global
+[push]
+	default = current
+[pull]
+	default = current
+[alias]
+	co = checkout
+	br = branch
+	c = commit
+	st = status
+	unstage = reset HEAD --
+	l = !. ~/.githelpers && pretty_git_log
+	r = !GIT_NO_PAGER=1 git l -30
+	ra = !git r --all
