@@ -81,17 +81,19 @@ call plug#begin('~/.vim/plugged')
  " IDE Style Stuff
  Plug 'mhinz/vim-startify'
  Plug 'scrooloose/nerdtree'
- Plug 'Lokaltog/vim-powerline'
- Plug 'bling/vim-airline'
+
+ Plug 'majutsushi/tagbar'
+
+ Plug 'vim-airline/vim-airline'
  Plug 'vim-airline/vim-airline-themes'
 
 " Text Manipulation / Display
  Plug 'Raimondi/delimitMate'
  Plug 'tpope/vim-surround'
- Plug 'kien/rainbow_parentheses.vim'
  Plug 'terryma/vim-expand-region'
  Plug 'vim-scripts/matchit.zip'
  Plug 'tpope/vim-tbone'
+ Plug 'junegunn/rainbow_parentheses.vim'
 
  "Commenting
  Plug 'tpope/vim-commentary'
@@ -196,7 +198,7 @@ set guioptions-=T
 "-----------------------------------------------------------------------------------
 " Tags
 "-----------------------------------------------------------------------------------
-set tags=tags;/
+set tags=./tags;/
 "-----------------------------------------------------------------------------------
 " Set the minimum number of lines above and below the cursor
 "-----------------------------------------------------------------------------------
