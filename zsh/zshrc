@@ -281,10 +281,12 @@ fi
 #===================================================================================
 # Path to your oh-my-zsh installation.
 #===================================================================================
-plugins=(git colored-man zsh-syntax-highlighting pip python fasd extract vi-mode)
+# plugins=(git colored-man zsh-syntax-highlighting pip python fasd extract vi-mode)
+
+plugins=(vi-mode)
 
 if [[ `uname` == 'Darwin' ]]; then
-    plugins+=(osx brew brew-cask)
+    # plugins+=(osx)
 fi
 
 export ZSH=/Users/abarax/.oh-my-zsh
@@ -306,8 +308,6 @@ source $ZSH/oh-my-zsh.sh
 #===================================================================================
 BULLETTRAIN_VIRTUALENV_FG=black
 BULLETTRAIN_RUBY_SHOW=false
-
-export KEYTIMEOUT=1
 
 #===================================================================================
 #TMUX
@@ -351,6 +351,25 @@ command -v tree > /dev/null && export FZF_ALT_C_OPTS="--preview 'tree -C {} | he
 # display a smaller fzf window instead of fullscreen
 fzf-down() {
   fzf --height 50% "$@" --border
+}
+
+ftpane() {
+  local panes current_window current_pane target target_window target_pane
+  panes=$(tmux list-panes -s -F '#I:#P - #{pane_current_path} #{pane_current_command}')
+  current_pane=$(tmux display-message -p '#I:#P')
+  current_window=$(tmux display-message -p '#I')
+
+  target=$(echo "$panes" | grep -v "$current_pane" | fzf +m --reverse) || return
+
+  target_window=$(echo $target | awk 'BEGIN{FS=":|-"} {print$1}')
+  target_pane=$(echo $target | awk 'BEGIN{FS=":|-"} {print$2}' | cut -c 1)
+
+  if [[ $current_window -eq $target_window ]]; then
+    tmux select-pane -t ${target_window}.${target_pane}
+  else
+    tmux select-pane -t ${target_window}.${target_pane} &&
+    tmux select-window -t $target_window
+  fi
 }
 
 # }}
@@ -523,15 +542,21 @@ gr() {
   cut -d$'\t' -f1
 }
 
+join-lines() {
+  local item
+  while read item; do
+    echo -n "${(q)item} "
+  done
+}
+
 bind-git-helper() {
   local char
   for c in $@; do
-    eval "fzf-g$c-widget() { local result=\$(g$c); zle reset-prompt; LBUFFER+=\$result }"
+    eval "fzf-g$c-widget() { local result=\$(g$c | join-lines); zle reset-prompt; LBUFFER+=\$result }"
     eval "zle -N fzf-g$c-widget"
     eval "bindkey '^g^$c' fzf-g$c-widget"
   done
 }
-
 bind-git-helper f b t r h
 unset -f bind-git-helper
 
@@ -583,7 +608,7 @@ function dmark()  {
 }
 
 zle -N jump
-bindkey '^j' jump
+# bindkey '^j' jump
 
 # }}
 
