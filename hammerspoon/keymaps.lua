@@ -96,3 +96,6 @@ keymap('3', 'alt', 'FAST', nil, NO_REPEAT)
 keymap('f1', 'alt', 'MUTE', nil)
 keymap('f2', 'alt', 'SOUND_DOWN', nil)
 keymap('f3', 'alt', 'SOUND_UP', nil)
+
+-- ColourSnapper remap
+keymap('c', 'alt', 'c', 'alt+cmd', NO_REPEAT)

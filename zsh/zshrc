@@ -113,7 +113,7 @@ zstyle -e ':completion:*:(ssh|scp|sshfs|ping|telnet|nc|rsync):*' hosts '
 alias chrome="open /Applications/Google\ Chrome.app/ --args --disable-web-security"
 
 #Android stuff
-PATH=${PATH}:~/dev/tools/adt-bundle-mac-x86_64-20140702/sdk/platform-tools:~/dev/tools/adt-bundle-mac-x86_64-20140702/sdk/tools
+# PATH=${PATH}:~/dev/tools/adt-bundle-mac-x86_64-20140702/sdk/platform-tools:~/dev/tools/adt-bundle-mac-x86_64-20140702/sdk/tools
 
 PATH=$PATH:/usr/local/sbin
 
@@ -133,13 +133,11 @@ bindkey '^H' backward-delete-char
 
 #  Aliases {{
 #-------------------------------------------------------------------------------
-alias vim='nvim'
-alias vi='vim'
 alias ls='ls -aFHG'
 alias ll='ls -alh'
 alias la='ls -la'
 alias l='ls -lah'
-alias lls='ll -Sr'
+alias lls='ll -Srah'
 alias less='less -imJMW'
 alias update='brew update && brew upgrade'
 alias upgrade='brew upgrade'
@@ -164,6 +162,7 @@ alias buddy='tmux switch-client -t "host-session"; tmux display-message "Enterin
 alias mux='tmuxinator'
 alias safesite-web='mux safesite-web'
 alias safesite-mob='mux safesite-mobile'
+alias preview='open -a Preview'
 
 # }}
 
@@ -331,7 +330,7 @@ source $DOTFILES/zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 # --hidden: Search hidden files and folders
 # --follow: Follow symlinks
 # --glob: Additional conditions for search (in this case ignore everything in the .git/ folder)
-export FZF_DEFAULT_COMMAND='rg --files --no-ignore --hidden --follow --glob "!.git/*"'
+export FZF_DEFAULT_COMMAND='rg --files --hidden --follow --glob "!.git/*"'
 export FZF_DEFAULT_OPTS='-x --height 40% --reverse --border'
 
 # export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND | with-dir"
@@ -614,6 +613,11 @@ zle -N jump
 
 # PATH stuff {{
 #===============================================================================
+
+#Android stuff
+export ANDROID_HOME=/Users/abarax/Library/Android/sdk
+export PATH=${PATH}:$ANDROID_HOME/emulator:$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools
+
 export PATH=$DOTFILES/bin:$PATH
 
 source $DOTFILES/zsh/alias.zsh

@@ -26,37 +26,37 @@ call plug#begin('~/.vim/plugged')
 
  Plug 'ervandew/supertab'
  Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
- Plug 'vim-scripts/AutoComplPop'
 
 " Language Support
 "   Python
  Plug 'zchee/deoplete-jedi'
- Plug 'davidhalter/jedi'
-
- Plug 'othree/yajs.vim'
- Plug 'jelera/vim-javascript-syntax'
- Plug 'othree/javascript-libraries-syntax.vim'
- Plug 'JarrodCTaylor/vim-js2coffee'
  Plug 'hdima/python-syntax'
- Plug 'mustache/vim-mustache-handlebars'
+
+ " CSS
+ Plug 'ap/vim-css-color'
+
+ " JavaScript
  Plug 'pangloss/vim-javascript'
- Plug 'kchmck/vim-coffee-script'
+ Plug 'mustache/vim-mustache-handlebars'
  Plug 'tpope/vim-rails'
  Plug 'othree/html5.vim'
- Plug 'vim-scripts/bash-support.vim'
  Plug 'sheerun/vim-polyglot'
  Plug 'sbdchd/neoformat'
  Plug 'pearofducks/ansible-vim'
 
+
+ " FZFFFFFFF
  Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
  Plug 'junegunn/fzf.vim'
+
+
+ Plug 'mbbill/undotree'
+
+ Plug 'vim-scripts/YankRing.vim'
 
  "Snippit Stuff
  Plug 'SirVer/ultisnips'
  Plug 'honza/vim-snippets'
- Plug 'ternjs/tern_for_vim', { 'for': ['javascript', 'javascript.jsx'] }
- Plug 'carlitux/deoplete-ternjs', { 'for': ['javascript', 'javascript.jsx'] }
- Plug 'othree/jspc.vim', { 'for': ['javascript', 'javascript.jsx'] }
 
  " Navigation
  Plug 'justinmk/vim-sneak'
@@ -69,23 +69,22 @@ call plug#begin('~/.vim/plugged')
  Plug 'chriskempson/base16-vim'
  Plug 'morhetz/gruvbox'
  Plug 'chriskempson/base16-vim'
-
- " Searching
- Plug 'kien/ctrlp.vim'
- Plug 'epmatsw/ag.vim'
+ Plug 'ajh17/Spacegray.vim'
 
  " Git
  Plug 'airblade/vim-gitgutter'
  Plug 'tpope/vim-fugitive'
+ Plug 'junegunn/gv.vim'
 
  " IDE Style Stuff
  Plug 'mhinz/vim-startify'
  Plug 'scrooloose/nerdtree'
-
- Plug 'majutsushi/tagbar'
+ Plug 'abaldwin88/roamer.vim'
 
  Plug 'vim-airline/vim-airline'
  Plug 'vim-airline/vim-airline-themes'
+
+ Plug 'majutsushi/tagbar'
 
 " Text Manipulation / Display
  Plug 'Raimondi/delimitMate'
@@ -95,11 +94,14 @@ call plug#begin('~/.vim/plugged')
  Plug 'tpope/vim-tbone'
  Plug 'junegunn/rainbow_parentheses.vim'
 
+ " Shows register content
+ Plug 'junegunn/vim-peekaboo'
+
  "Commenting
  Plug 'tpope/vim-commentary'
 
  " Syntax Checking
- Plug 'w0rp/ale'
+ " Plug 'w0rp/ale'
 
  " Python Code Folding
  Plug 'tmhedberg/SimpylFold'
@@ -107,8 +109,11 @@ call plug#begin('~/.vim/plugged')
  " Misc Functions
  Plug 'vim-scripts/L9'
 
-" distraction free
+ Plug 'christoomey/vim-tmux-navigator'
+ Plug 'francoiscabrol/ranger.vim'
+
  Plug 'junegunn/goyo.vim'
+ Plug 'vimwiki/vimwiki'
 
 " Add plugins to &runtimepath
 " All of your Plugins must be added before the following line
@@ -210,6 +215,27 @@ set scrolloff=3
 au BufNewFile,BufRead *.json set ft=javascript
 
 "-----------------------------------------------------------------------------------
+" Use Goyo for editing these file types
+"-----------------------------------------------------------------------------------
+
+function! s:auto_goyo()
+    let extension = expand('%:e')
+    if extension == 'wiki'
+        Goyo 90
+    else
+        let bufnr = bufnr('%')
+        Goyo!
+        execute 'b '.bufnr
+    endif
+endfunction
+
+augroup goyo_markdown
+    autocmd!
+    autocmd BufEnter * call s:auto_goyo()
+augroup END
+
+
+"-----------------------------------------------------------------------------------
 " Make pasting done without any indentation break
 "-----------------------------------------------------------------------------------
 set pastetoggle=<F3>
@@ -265,6 +291,8 @@ let g:airline#extensions#ale#warning_symbol = '⚠ '
 
 " ALE
 let g:ale_statusline_format = ['⨉ %d', '⚠ %d', '⬥ ok']
+
+let g:ale_linters = {'python': ['flake8'], 'javascript': ['eslint']}
 
 "-----------------------------------------------------------------------------------
 " UltiSnips configurations
@@ -471,6 +499,18 @@ if executable("rg")
 
     command! -bang -nargs=* FindAll call fzf#vim#grep('rg --column --line-number --no-heading --fixed-strings --ignore-case --no-ignore --hidden --follow --glob "!.git/*" --color "always" '.shellescape(<q-args>), 1, <bang>0)
 
+    command! -bang -nargs=* Rg
+      \ call fzf#vim#grep(
+      \   'rg --column --line-number --no-heading --color=always '.shellescape(<q-args>), 1,
+      \   <bang>0 ? fzf#vim#with_preview('up:60%')
+      \           : fzf#vim#with_preview('right:50%:hidden', '?'),
+      \   <bang>0)command! -bang -nargs=* Rg
+      \ call fzf#vim#grep(
+      \   'rg --column --line-number --no-heading --color=always '.shellescape(<q-args>), 1,
+      \   <bang>0 ? fzf#vim#with_preview('up:60%')
+      \           : fzf#vim#with_preview('right:50%:hidden', '?'),
+      \   <bang>0)
+
     set grepprg=rg\ --vimgrep
 
     let $FZF_DEFAULT_COMMAND='rg --files --hidden --follow --glob "!.git/*"'
@@ -572,8 +612,6 @@ noremap ; :
 " --- remap local leader to backslash
 let maplocalleader = "\<Space>"
 
-" --- ss will toggle spell checking
-map cs :setlocal spell!<CR>
 " --- toggle Tagbar
 nnoremap <Leader>tb :TagbarToggle<CR>
 " --- open CtrlP buffer explorer
@@ -607,6 +645,8 @@ map <Leader>cf :call CopyFile()<CR>
 nnoremap <Leader>ff :Files<CR>
 " --- open fzf as a fuzzy finder and input search term
 nnoremap <Leader>sf :Find 
+" --- open fzf as a fuzzy finder for lines
+nnoremap <Leader>sl :Lines<CR> 
 " --- shortcut to save the current document
 map .. :w<CR>
 " -- spell check
@@ -614,14 +654,8 @@ noremap <Leader>sp :set spell spelllang=en_us<CR>
 " --- toggle Tagbar
 nnoremap <Leader>tb :TagbarToggle<CR>
 " --- basic file system navigation view
-map <Leader>d :NERDTreeToggle<CR>
+map <Leader>d :Ranger<CR>
 nmap <Leader>nt :NERDTreeFind<CR>
-" --- search the ctags index file for anything by class or method name
-map <Leader>fs :CtrlPTag<CR>
-" --- search all files in the current files directory
-map <Leader>fd :CtrlPCurFile<CR>
-" --- search all the files you have open in your vim buffer
-map <Leader>fb :CtrlPBuffer<CR>
 " --- go to the last file you had open
 nmap <Leader><Leader> <c-^>
 " --- ,ev Shortcut to edit .vimrc file on the fly on a vertical window
@@ -669,6 +703,9 @@ noremap <Leader>gs :Gstatus<CR>
 " GitDiff
 noremap <Leader>gd :Gdiff<CR>
 
+" Tig open
+noremap <Leader>t :!tig<CR>
+
 "-----------------------------------------------------------------------------------
 " Copy to clipboard
 "-----------------------------------------------------------------------------------
@@ -684,6 +721,17 @@ nmap <Leader>m `]
 nmap <Leader>M `[
 nmap mm m,
 nnoremap  <Leader>mm  :Marks<CR>
+nnoremap  <Leader>dm  :delm!<CR>:delm A-Z0-9<CR>:call signature#sign#Refresh()<CR>
+
+
+"-----------------------------------------------------------------------------------
+" YankRing
+"-----------------------------------------------------------------------------------
+
+let g:yankring_history_file = '.yankring-history'
+nnoremap ,yr :YRShow<CR>
+nnoremap C-y :YRShow<CR>
+
 
 "-----------------------------------------------------------------------------------
 " Folds
@@ -706,6 +754,7 @@ command! -nargs=0 Cmd exe 'Tmux split-window -l 12 -c '.shellescape(getcwd())
 
 " }
 
+nnoremap <Leader>c :Cmd<CR>
 
 function! YAPF() range
   " Determine range to format.
@@ -724,3 +773,28 @@ function! YAPF() range
 endfunction
 
 command! -range=% YAPF <line1>,<line2>call YAPF()
+
+"-----------------------------------------------------------------------------------
+" Ranger
+"-----------------------------------------------------------------------------------
+
+let g:ranger_map_keys = 0
+
+map <leader>r :Ranger<CR>
+
+"-----------------------------------------------------------------------------------
+" VimWiki
+"-----------------------------------------------------------------------------------
+
+let g:vimwiki_listsyms = '✗○◐●✓'
+let g:vimwiki_folding = 'list'
+
+au FileType vimwiki setl sw=2 sts=2 et
+
+
+if executable('ag')
+  let &grepprg = 'ag --nogroup --nocolor --column'
+else
+let &grepprg = 'grep -rn $* *'
+endif
+command! -nargs=1 -bar Grep execute 'silent! grep! <q-args>' | redraw! | copen
