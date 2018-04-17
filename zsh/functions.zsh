@@ -9,7 +9,7 @@ fe() {
 }
 
 # fd - cd to selected directory
-fd() {
+sd() {
     local dir
     dir=$(find ${1:-*} -path '*/\.*' -prune \
         -o -type d -print 2> /dev/null | fzf-tmux +m) &&
