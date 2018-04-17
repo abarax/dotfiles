@@ -56,6 +56,9 @@ link_file() {
 echo "Setting up git"
 link_file "$base_dir/git/gitconfig" ~/.gitconfig
 
+echo "Setting up tig..."
+link_file "$base_dir/git/tigrc" ~/.tigrc
+
 echo "Setting up zsh..."
 link_file "$base_dir/zsh/oh-my-zsh" ~/.oh-my-zsh
 link_file "$base_dir/zsh/zshrc" ~/.zshrc
